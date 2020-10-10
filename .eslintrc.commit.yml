@@ -1,0 +1,6 @@
+extends: ./.eslintrc.yml
+rules: {
+  no-console: error,
+  no-debugger: error,
+  no-alert: error
+}
