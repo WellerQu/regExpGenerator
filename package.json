@@ -2,8 +2,8 @@
   "name": "regexp-generator",
   "version": "1.0.1",
   "description": "generate a regexp string by a sample and some selected strings",
-  "main": "build/commonjs/regexpGenerator.js",
-  "module": "build/esm/regexpGenerator.js",
+  "main": "build/commonjs/regExpGenerator.js",
+  "module": "build/esm/regExpGenerator.js",
   "scripts": {
     "test": "jest",
     "build": "tsc --build tsconfig.cjs.json && tsc --build tsconfig.esm.json",
