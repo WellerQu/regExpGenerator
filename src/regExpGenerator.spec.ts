@@ -1,5 +1,5 @@
 
-import { generate, Result }  from './regExpGenerator'
+import { generate, Result, Sample }  from './regExpGenerator'
 
 describe('regExpGenerator', () => {
   /* eslint-disable no-useless-escape */
@@ -23,7 +23,7 @@ describe('regExpGenerator', () => {
   /* eslint-enable no-useless-escape */
 
   it('未选择任何区间', () => {
-    const selectedAreas = []
+    const selectedAreas: Sample[] = []
     const result = generate(sampleList[2], selectedAreas)
 
     expect(result).not.toBeNull()
@@ -44,7 +44,7 @@ describe('regExpGenerator', () => {
         startIndex: 0
       }
     ]
-    const result = generate(null, selectedAreas)
+    const result = generate('', selectedAreas)
 
     expect(result).not.toBeNull()
     expect(result).toEqual({ expr: '.*', matches: {} } as Result)
@@ -532,7 +532,7 @@ describe('regExpGenerator', () => {
       }
     ]
 
-    function readMatches(matches: RegExpMatchArray) {
+    function readMatches(matches: RegExpMatchArray | null) {
       return matches
     }
 

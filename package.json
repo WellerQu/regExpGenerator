@@ -5,11 +5,12 @@
   "main": "build/commonjs/regexpGenerator.js",
   "module": "build/esm/regexpGenerator.js",
   "scripts": {
+    "test": "jest",
     "build": "tsc --build tsconfig.cjs.json && tsc --build tsconfig.esm.json",
     "prepublishOnly": "npm run build",
-    "prebuild": "npm run lint && npm run types",
-    "lint": "tsc --noEmit && eslint -c .eslintrc.commit.yml src/**/*.ts --fix",
-    "types": "tsc src/regExpGenerator.ts --outDir ./types --emitDeclarationOnly --declaration --target es2015"
+    "prebuild": "npm run lint && npm test && npm run types",
+    "lint": "eslint -c .eslintrc.commit.yml src/**/*.ts --fix",
+    "types": "tsc --build tsconfig.types.json"
   },
   "keywords": [
     "regexp",
@@ -28,11 +29,14 @@
   "author": "nix",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
+    "@types/jest": "^26.0.14",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",
     "eslint": "^7.11.0",
     "husky": "^4.3.0",
+    "jest": "^26.5.3",
     "lint-staged": "^10.4.0",
+    "ts-jest": "^26.4.1",
     "typescript": "^4.0.3"
   },
   "husky": {

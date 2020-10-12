@@ -1,4 +1,4 @@
-interface Sample {
+export interface Sample {
   name: string
   value: string
   startIndex: number

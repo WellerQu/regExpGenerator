@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "outDir": "./types",
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "moduleResolution": "Node"
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "*.spec.ts"
+  ]
+}
