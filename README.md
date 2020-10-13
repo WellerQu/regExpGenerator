@@ -2,6 +2,8 @@
 
 generate a regExp string by a sample string and some selected strings
 
+![CI](https://github.com/WellerQu/regExpGenerator/workflows/CI/badge.svg)
+
 ## Usage
 
 ### Living Demo
