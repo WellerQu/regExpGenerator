@@ -1,5 +1,5 @@
 
-import { generate, Result, Sample }  from './regExpGenerator'
+import { generate, Result, Sample } from './regExpGenerator'
 
 describe('regExpGenerator', () => {
   /* eslint-disable no-useless-escape */
@@ -27,7 +27,7 @@ describe('regExpGenerator', () => {
     const result = generate(sampleList[2], selectedAreas)
 
     expect(result).not.toBeNull()
-    expect(result).toEqual({ expr: '.*', matches: {} } as Result)
+    expect(result).toEqual({ expr: '.*', names: {} } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[2])
@@ -47,7 +47,7 @@ describe('regExpGenerator', () => {
     const result = generate('', selectedAreas)
 
     expect(result).not.toBeNull()
-    expect(result).toEqual({ expr: '.*', matches: {} } as Result)
+    expect(result).toEqual({ expr: '.*', names: {} } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[2])
@@ -61,15 +61,20 @@ describe('regExpGenerator', () => {
       {
         name: 'LoginFromIP',
         value: '192.168.55.100',
-        startIndex: 251 
+        startIndex: 251
       }
     ]
     const result = generate(sampleList[0], selectedAreas)
 
     expect(result).not.toBeNull()
-    expect(result).toEqual({ 
-      expr: '^(?:[^ \\n]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)', 
-      matches: {'LoginFromIP': 1} 
+    expect(result).toEqual({
+      expr: '^(?:[^ \\n]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)',
+      names: {
+        'LoginFromIP': {
+          groupIndex: 1,
+          standaloneExpr: "^(?:[^ \\n]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)"
+        }
+      }
     } as Result)
 
     const reg = new RegExp(result.expr, 'im')
@@ -77,7 +82,12 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['LoginFromIP']]).toEqual('192.168.55.100')
+    expect(matches[result.names['LoginFromIP'].groupIndex]).toEqual('192.168.55.100')
+
+    const standaloneMatches = sampleList[0].match(result.names['LoginFromIP'].standaloneExpr)
+    expect(standaloneMatches).not.toBeNull()
+    expect(standaloneMatches).toHaveLength(2)
+    expect(standaloneMatches[1]).toBe('192.168.55.100')
   })
 
   it('生成表达式: 选取三段', () => {
@@ -101,13 +111,22 @@ describe('regExpGenerator', () => {
     const result = generate(sampleList[1], selectedAreas)
 
     expect(result).not.toBeNull()
-    expect(result).toEqual({ 
-      expr: '^(\\w+ \\d+)( \\d+:\\d+:\\d+)(?:[^\\.\\n]*\\.){1}(\\d+\\.\\d+\\.\\d+)', 
-      matches: {
-        'Time 1': 2,
-        'Part of IP': 3,
-        'Date 1': 1
-      } 
+    expect(result).toEqual({
+      expr: '^(\\w+ \\d+)( \\d+:\\d+:\\d+)(?:[^\\.\\n]*\\.){1}(\\d+\\.\\d+\\.\\d+)',
+      names: {
+        'Time 1': {
+          groupIndex: 2,
+          standaloneExpr: "^(?:[^ \\n]* ){1}\\d+?( \\d+:\\d+:\\d+)"
+        },
+        'Part of IP': {
+          groupIndex: 3,
+          standaloneExpr: "^(?:[^ \\n]* ){3}\\d+\\.(\\d+\\.\\d+\\.\\d+)"
+        },
+        'Date 1': {
+          groupIndex: 1,
+          standaloneExpr: "^(\\w+ \\d+)"
+        }
+      }
     } as Result)
 
     const reg = new RegExp(result.expr, 'im')
@@ -115,9 +134,16 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['Date 1']]).toEqual('Sep 25')
-    expect(matches[result.matches['Time 1']]).toEqual(' 02:22:59')
-    expect(matches[result.matches['Part of IP']]).toEqual('5.172.40')
+    expect(matches[result.names['Date 1'].groupIndex]).toEqual('Sep 25')
+    expect(matches[result.names['Time 1'].groupIndex]).toEqual(' 02:22:59')
+    expect(matches[result.names['Part of IP'].groupIndex]).toEqual('5.172.40')
+
+    selectedAreas.forEach(area => {
+      const standaloneMatches = sampleList[1].match(result.names[area.name].standaloneExpr)
+      expect(standaloneMatches).not.toBeNull()
+      expect(standaloneMatches).toHaveLength(2)
+      expect(standaloneMatches[1]).toBe(area.value)
+    })
   })
 
   it('准确识别位置: 命中第二个时间格式的字符串, 但不命中第一个', () => {
@@ -133,7 +159,12 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){6}(\\d+:\\d+:\\d+)',
-      matches: { 'Time 2': 1 }
+      names: {
+        'Time 2': {
+          groupIndex: 1,
+          standaloneExpr: "^(?:[^ \\n]* ){6}(\\d+:\\d+:\\d+)"
+        }
+      }
     } as Result)
 
     const reg = new RegExp(result.expr, 'im')
@@ -141,8 +172,8 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['Time 2']]).not.toBe('17:22:59')
-    expect(matches[result.matches['Time 2']]).toBe("19:32:23")
+    expect(matches[result.names['Time 2'].groupIndex]).not.toBe('17:22:59')
+    expect(matches[result.names['Time 2'].groupIndex]).toBe("19:32:23")
   })
 
   it('选择部分IP地址', () => {
@@ -156,9 +187,14 @@ describe('regExpGenerator', () => {
     const result = generate(sampleList[5], selectedAreas)
 
     expect(result).not.toBeNull()
-    expect(result).toEqual({ 
+    expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){3}\\d+\\.\\d+\\.\\d+?(\\d+\\.\\d+)',
-      matches: { 'part of IP': 1 }
+      names: {
+        'part of IP': {
+          groupIndex: 1,
+          standaloneExpr: "^(?:[^ \\n]* ){3}\\d+\\.\\d+\\.\\d+?(\\d+\\.\\d+)"
+        }
+      }
     } as Result)
 
     const reg = new RegExp(result.expr, 'im')
@@ -166,7 +202,7 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['part of IP']]).toBe("72.40")
+    expect(matches[result.names['part of IP'].groupIndex]).toBe("72.40")
   })
 
   it('选择部分单词会匹配不准确', () => {
@@ -180,9 +216,14 @@ describe('regExpGenerator', () => {
     const result = generate(sampleList[6], selectedAreas)
 
     expect(result).not.toBeNull()
-    expect(result).toEqual({ 
+    expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){7}\\w+-\\w+?(\\w+)',
-      matches: { 'part of string': 1 }
+      names: {
+        'part of string': {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ \\n]* ){7}\\w+-\\w+?(\\w+)'
+        }
+      }
     } as Result)
 
     const reg = new RegExp(result.expr, 'im')
@@ -190,7 +231,7 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['part of string']]).not.toBe('nora')
+    expect(matches[result.names['part of string'].groupIndex]).not.toBe('nora')
   })
 
   it('选择字符串包含标点符号', () => {
@@ -206,8 +247,11 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-(\\w+-\\w+)',
-      matches: {
-        "include -": 1
+      names: {
+        "include -": {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-(\\w+-\\w+)'
+        }
       }
     } as Result)
 
@@ -216,10 +260,10 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['include -']]).toBe('auth-fail')
+    expect(matches[result.names['include -'].groupIndex]).toBe('auth-fail')
   })
 
-  it('选择字符串以标点符号开头', () => { 
+  it('选择字符串以标点符号开头', () => {
     const selectedAreas = [
       {
         name: '- www',
@@ -232,20 +276,23 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: "^(?:[^ \\n]* ){7}\\w+-(\\w+)",
-      matches: {
-        "- www": 1
+      names: {
+        "- www": {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ \\n]* ){7}\\w+-(\\w+)'
+        }
       }
-    })
+    } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[8])
-    
+
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['- www']]).toBe('Panorama')
+    expect(matches[result.names['- www'].groupIndex]).toBe('Panorama')
   })
 
-  it('中文支持', () => { 
+  it('中文支持', () => {
     const selectedAreas = [
       {
         name: '日期 1',
@@ -262,27 +309,40 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: "^([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])(?:[^\\.\\n]*\\.){3}\\d+ ([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])",
-      matches: {
-        '日期 1': 1,
-        '日期 2': 2
+      names: {
+        '日期 1': {
+          groupIndex: 1,
+          standaloneExpr: '^([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])'
+        },
+        '日期 2': {
+          groupIndex: 2,
+          standaloneExpr: '^(?:[^ \\n]* ){4}([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])'
+        }
       }
-    })
+    } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[13])
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['日期 1']]).toBe('九月 24日')
-    expect(matches[result.matches['日期 2']]).toBe('二月 24日')
+    expect(matches[result.names['日期 1'].groupIndex]).toBe('九月 24日')
+    expect(matches[result.names['日期 2'].groupIndex]).toBe('二月 24日')
 
     const reg2 = new RegExp(result.expr, 'im')
     const matches2 = reg2.exec(sampleList[14])
 
     expect(matches2).not.toBeNull()
     expect(matches2).toHaveLength(selectedAreas.length + 1)
-    expect(matches2[result.matches['日期 1']]).toBe('十二月 29日')
-    expect(matches2[result.matches['日期 2']]).toBe('二月 24日')
+    expect(matches2[result.names['日期 1'].groupIndex]).toBe('十二月 29日')
+    expect(matches2[result.names['日期 2'].groupIndex]).toBe('二月 24日')
+
+    selectedAreas.forEach(area => {
+      const standaloneMatches = sampleList[13].match(result.names[area.name].standaloneExpr)
+      expect(standaloneMatches).not.toBeNull()
+      expect(standaloneMatches).toHaveLength(2)
+      expect(standaloneMatches[1]).toBe(area.value)
+    })
   })
 
   it("根据其中一个日志生成正则表达式, 并验证其它日志", () => {
@@ -411,15 +471,20 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: "^(?:[^/\\n]*/){1}(\\d+/\\d+)",
-      matches: { date: 1 }
-    })
+      names: {
+        date: {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^/\\n]*/){1}(\\d+/\\d+)'
+        }
+      }
+    } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[9])
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['date']]).toBe('09/24')
+    expect(matches[result.names['date'].groupIndex]).toBe('09/24')
   })
 
   it('不同精确度的匹配: 模糊匹配', () => {
@@ -435,18 +500,23 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w+)',
-      matches: { status: 1 }
-    })
+      names: {
+        status: {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w+)'
+        }
+      }
+    } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[10])
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['status']]).toBe('succ')
+    expect(matches[result.names['status'].groupIndex]).toBe('succ')
   })
 
-  it('不同精确度的匹配: 一般匹配', () => { 
+  it('不同精确度的匹配: 一般匹配', () => {
     const selectedAreas = [
       {
         name: 'status',
@@ -459,18 +529,23 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w\\w\\w\\w)',
-      matches: { status: 1 }
-    })
+      names: {
+        status: {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w\\w\\w\\w)'
+        }
+      }
+    } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[10])
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['status']]).toBe('succ')
+    expect(matches[result.names['status'].groupIndex]).toBe('succ')
   })
 
-  it('不同精确度的匹配: 精确匹配', () => { 
+  it('不同精确度的匹配: 精确匹配', () => {
     const selectedAreas = [
       {
         name: 'status',
@@ -483,16 +558,20 @@ describe('regExpGenerator', () => {
     expect(result).not.toBeNull()
     expect(result).toEqual({
       expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(succ)',
-      matches: { status: 1 }
-    })
-
+      names: {
+        status: {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(succ)'
+        }
+      }
+    } as Result)
 
     const reg = new RegExp(result.expr, 'im')
     const matches = reg.exec(sampleList[10])
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.matches['status']]).toBe('succ')
+    expect(matches[result.names['status'].groupIndex]).toBe('succ')
   })
 
   it.skip('性能测试: 选择五个字段生成表达式, 验证30万行数据', () => {
@@ -500,7 +579,7 @@ describe('regExpGenerator', () => {
     const len = sampleList.length
     const newSamples = new Array(size)
 
-    for (let i = 0;i < size; i++) {
+    for (let i = 0; i < size; i++) {
       newSamples[i] = sampleList[i % len]
     }
 

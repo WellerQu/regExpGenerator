@@ -4,6 +4,15 @@ export interface Sample {
   startIndex: number
 }
 
+export interface Field {
+  groupIndex: number,
+  standaloneExpr: string
+}
+
+type FieldName = string
+type RegExpStr = string
+type NamesMapping = Record<FieldName, Field>
+
 enum Level {
   fuzzy = 'fuzzy',
   normal = 'normal',
@@ -16,8 +25,8 @@ export interface Options {
 }
 
 export interface Result {
-  expr: string,
-  matches: Record<string, number>
+  expr: RegExpStr,
+  names: NamesMapping,
 }
 
 function isNumber (ch: string): boolean {
@@ -117,6 +126,15 @@ function transformCharacter (value: string, level: Level): string {
     .replace(/(\[\\u4e00-\\u9fa5\]){2,}/g, "[\\u4e00-\\u9fa5]+")
 }
 
+function findSeparator(slice: string, sep?: string): [string, number] {
+  if (sep) {
+    return [sep, characterCount(slice, sep[0])]
+  }
+
+  const sepMap = punctuationCount(slice)
+  return findMaxCountCharacter(sepMap)
+}
+
 export function generate(raw: string, samples: Sample[], options?: Options): Result {
   const opts: Required<Options> = {
     level: options?.level ?? 'fuzzy',
@@ -125,7 +143,7 @@ export function generate(raw: string, samples: Sample[], options?: Options): Res
 
   const emptyResult: Result = {
     expr: '.*',
-    matches: {}
+    names: {}
   }
 
   if (samples.length === 0 || !raw || !raw.trim()) {
@@ -138,54 +156,45 @@ export function generate(raw: string, samples: Sample[], options?: Options): Res
     .sort((a, b) => a.startIndex - b.startIndex)
 
   const result: Result = {
-    expr: '^',
-    matches: sortedSamples.reduce((acc, item, index) => {
-      acc[item.name] = index + 1
-      return acc
-    }, {} as Record<string, number>)
+    expr: '',
+    names: sortedSamples.reduce((acc, item, index) => (acc[item.name] = { groupIndex: index + 1, standaloneExpr: '' }, acc), {} as NamesMapping)
   }
 
-  type Scanner = [number, Result]
-  return sortedSamples.reduce<Scanner>(([endIndex, result], item) => {
-    // 符号分为三类: 数字, 字符/unicode, 标点
-    const nextStartIndex = item.startIndex
-    const slice = raw.slice(endIndex, nextStartIndex)
-
-    let count = 0
-    let separator = ''
-
-    if (!opts.separator) {
-      // 扫描从上一个 endIndex 开始, 截止到当前 startIndex 的全部字符, 找到出现次数最多的标点符号
-      const characterMap = punctuationCount(slice)
-      const entry = findMaxCountCharacter(characterMap)
-      // 统计出来的分隔符和分隔符出现的次数
-      separator = entry[0]
-      count = entry[1]
-    } else {
-      separator = opts.separator
-      count = characterCount(slice, separator)
-    }
+  const generateHandler = (fromHead = false) => (item: Sample, index: number, samples: Sample[]) => {
+    const startIndex = index === 0 ? 0 : (samples[index - 1].startIndex + samples[index - 1].value.length)
+    const slice = raw.slice(fromHead ? 0 : startIndex, item.startIndex)
+    const [separator, count] = findSeparator(slice, opts.separator)
 
     const chs = isRegExpMetaChar(separator) ? `\\${separator}` : separator
 
     // #region 生成前缀正则表达式
-    const prevExpr = count === 0 ? '' : `(?:[^${chs }\\n]*${chs}){${count}}`
+    const prevExpr = count === 0 ? '' : `(?:[^${chs}\\n]*${chs}){${count}}`
     // #endregion
 
     // #region 生成中间正则表达式
     const lastIndex = slice.lastIndexOf(separator)
-    const middleExpr = lastIndex === slice.length - 1 ? '' :  transformCharacter(slice.slice(lastIndex + 1), Level.fuzzy)
-    const notGreed = middleExpr.endsWith('+') ? `${middleExpr}?` : middleExpr
+    const middleExpr = lastIndex === slice.length - 1 ? '' : transformCharacter(slice.slice(lastIndex + 1), Level.fuzzy)
+    const notGreedExpr = middleExpr.endsWith('+') ? `${middleExpr}?` : middleExpr
     // #endregion
 
     // #region 生成目标正则表达式
     const targetExpr = `(${transformCharacter(item.value, Level[opts.level])})`
     // #endregion
-    
-    // #region 生成完整正则表达式
-    result.expr += (prevExpr + notGreed + targetExpr)
-    // #endregion
 
-    return [nextStartIndex + item.value.length, result]
-  }, [0, result] as Scanner)[1]
+    return prevExpr + notGreedExpr + targetExpr
+  }
+
+  const exprs = sortedSamples.map(generateHandler(false))
+  const standaloneExprs = sortedSamples.map(generateHandler(true))
+
+  result.expr = ('^' + exprs.join(''))
+  result.names = sortedSamples.reduce((acc, sample, index) => {
+    acc[sample.name] = {
+      groupIndex: index + 1,
+      standaloneExpr: ('^' + standaloneExprs[index])
+    }
+    return acc
+  }, {} as NamesMapping)
+
+  return result
 }

@@ -42,7 +42,7 @@ const result = generate(sample1, [
 const reg = new RegExp(result.expr, "im");
 const matches = reg.exec(sample2);
 
-console.log(matches[result.matches["age"]]);
+console.log(matches[result.names["age"].groupIndex]);
 // output is 32
 ```
 
@@ -82,9 +82,9 @@ const result = generate(sample1, [
 const reg = new RegExp(result.expr, "im");
 const matches = reg.exec(sample2);
 
-console.log("the first IP is ", matches[result.matches["the first IP"]]); // 1.5.12.42
-console.log("the third time string", matches[result.matches["the third time string"]]); // 12:02:59
-console.log("the username is ", matches[result.matches["the username"]]); // tng\troy
+console.log("the first IP is ", matches[result.names["the first IP"].groupIndex]); // 1.5.12.42
+console.log("the third time string", matches[result.names["the third time string"].groupIndex]); // 12:02:59
+console.log("the username is ", matches[result.names["the username"].groupIndex]); // tng\troy
 ```
 
 ### Advanced

@@ -6,6 +6,7 @@
   "module": "build/esm/regExpGenerator.js",
   "scripts": {
     "test": "jest",
+    "test:watch": "jest --watch",
     "build": "tsc --build tsconfig.cjs.json && tsc --build tsconfig.esm.json",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run lint && npm test && npm run types",
