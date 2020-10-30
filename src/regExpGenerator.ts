@@ -79,7 +79,7 @@ function transformCharacter(value: string, level: Level): string {
         return `\\${ch}`
       }
       if (isUnicode(ch)) {
-        return `[\\u4e00-\\u9fa5]`
+        return `[\\u4e00-\\uffff]`
       }
 
       return ch
@@ -93,7 +93,7 @@ function transformCharacter(value: string, level: Level): string {
   return expr
     .replace(/(\\w)+/g, "\\w+")
     .replace(/(\\d)+/g, "\\d+")
-    .replace(/(\[\\u4e00-\\u9fa5\]){2,}/g, "[\\u4e00-\\u9fa5]+")
+    .replace(/(\[\\u4e00-\\uffff\]){2,}/g, "[\\u4e00-\\uffff]+")
 }
 
 function findSeparator(slice: string, sep?: string): [string, number] {

@@ -308,15 +308,15 @@ describe('regExpGenerator', () => {
     const result = generate(sampleList[13], selectedAreas)
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])(?:[^ ]* ){3}([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])",
+      expr: "^([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])(?:[^ ]* ){3}([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])",
       names: {
         '日期 1': {
           groupIndex: 1,
-          standaloneExpr: '^([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])'
+          standaloneExpr: '^([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])'
         },
         '日期 2': {
           groupIndex: 2,
-          standaloneExpr: '^(?:[^ ]* ){4}([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])'
+          standaloneExpr: '^(?:[^ ]* ){4}([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])'
         }
       }
     } as Result)
