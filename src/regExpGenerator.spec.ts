@@ -68,11 +68,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)',
+      expr: '^(?:[^ ]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)',
       names: {
         'LoginFromIP': {
           groupIndex: 1,
-          standaloneExpr: "^(?:[^ \\n]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)"
+          standaloneExpr: "^(?:[^ ]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)"
         }
       }
     } as Result)
@@ -112,15 +112,15 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(\\w+ \\d+)( \\d+:\\d+:\\d+)(?:[^\\.\\n]*\\.){1}(\\d+\\.\\d+\\.\\d+)',
+      expr: '^(\\w+ \\d+)( \\d+:\\d+:\\d+)(?:[^\\.]*\\.){1}(\\d+\\.\\d+\\.\\d+)',
       names: {
         'Time 1': {
           groupIndex: 2,
-          standaloneExpr: "^(?:[^ \\n]* ){1}\\d+?( \\d+:\\d+:\\d+)"
+          standaloneExpr: "^(?:[^ ]* ){1}\\d+?( \\d+:\\d+:\\d+)"
         },
         'Part of IP': {
           groupIndex: 3,
-          standaloneExpr: "^(?:[^ \\n]* ){3}\\d+\\.(\\d+\\.\\d+\\.\\d+)"
+          standaloneExpr: "^(?:[^\\.]*\\.){1}(\\d+\\.\\d+\\.\\d+)"
         },
         'Date 1': {
           groupIndex: 1,
@@ -158,11 +158,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){6}(\\d+:\\d+:\\d+)',
+      expr: '^(?:[^ ]* ){6}(\\d+:\\d+:\\d+)',
       names: {
         'Time 2': {
           groupIndex: 1,
-          standaloneExpr: "^(?:[^ \\n]* ){6}(\\d+:\\d+:\\d+)"
+          standaloneExpr: "^(?:[^ ]* ){6}(\\d+:\\d+:\\d+)"
         }
       }
     } as Result)
@@ -188,11 +188,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){3}\\d+\\.\\d+\\.\\d+?(\\d+\\.\\d+)',
+      expr: '^(?:[^\\.]*\\.){2}\\d+?(\\d+\\.\\d+)',
       names: {
         'part of IP': {
           groupIndex: 1,
-          standaloneExpr: "^(?:[^ \\n]* ){3}\\d+\\.\\d+\\.\\d+?(\\d+\\.\\d+)"
+          standaloneExpr: "^(?:[^\\.]*\\.){2}\\d+?(\\d+\\.\\d+)"
         }
       }
     } as Result)
@@ -217,11 +217,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){7}\\w+-\\w+?(\\w+)',
+      expr: '^(?:[^-]*-){1}\\w+?(\\w+)',
       names: {
         'part of string': {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^ \\n]* ){7}\\w+-\\w+?(\\w+)'
+          standaloneExpr: '^(?:[^-]*-){1}\\w+?(\\w+)'
         }
       }
     } as Result)
@@ -246,11 +246,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-(\\w+-\\w+)',
+      expr: '^(?:[^-]*-){2}(\\w+-\\w+)',
       names: {
         "include -": {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-(\\w+-\\w+)'
+          standaloneExpr: '^(?:[^-]*-){2}(\\w+-\\w+)'
         }
       }
     } as Result)
@@ -275,11 +275,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^(?:[^ \\n]* ){7}\\w+-(\\w+)",
+      expr: "^(?:[^-]*-){1}(\\w+)",
       names: {
         "- www": {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^ \\n]* ){7}\\w+-(\\w+)'
+          standaloneExpr: '^(?:[^-]*-){1}(\\w+)'
         }
       }
     } as Result)
@@ -308,7 +308,7 @@ describe('regExpGenerator', () => {
     const result = generate(sampleList[13], selectedAreas)
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])(?:[^\\.\\n]*\\.){3}\\d+ ([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])",
+      expr: "^([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])(?:[^ ]* ){3}([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])",
       names: {
         '日期 1': {
           groupIndex: 1,
@@ -316,7 +316,7 @@ describe('regExpGenerator', () => {
         },
         '日期 2': {
           groupIndex: 2,
-          standaloneExpr: '^(?:[^ \\n]* ){4}([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])'
+          standaloneExpr: '^(?:[^ ]* ){4}([\\u4e00-\\u9fa5]+ \\d+[\\u4e00-\\u9fa5])'
         }
       }
     } as Result)
@@ -470,11 +470,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^(?:[^/\\n]*/){1}(\\d+/\\d+)",
+      expr: "^(?:[^/]*/){1}(\\d+/\\d+)",
       names: {
         date: {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^/\\n]*/){1}(\\d+/\\d+)'
+          standaloneExpr: '^(?:[^/]*/){1}(\\d+/\\d+)'
         }
       }
     } as Result)
@@ -499,11 +499,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w+)',
+      expr: '^(?:[^-]*-){3}(\\w+)',
       names: {
         status: {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w+)'
+          standaloneExpr: '^(?:[^-]*-){3}(\\w+)'
         }
       }
     } as Result)
@@ -528,11 +528,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w\\w\\w\\w)',
+      expr: '^(?:[^-]*-){3}(\\w\\w\\w\\w)',
       names: {
         status: {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(\\w\\w\\w\\w)'
+          standaloneExpr: '^(?:[^-]*-){3}(\\w\\w\\w\\w)'
         }
       }
     } as Result)
@@ -557,11 +557,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(succ)',
+      expr: '^(?:[^-]*-){3}(succ)',
       names: {
         status: {
           groupIndex: 1,
-          standaloneExpr: '^(?:[^ \\n]* ){10}\\d+:\\d+:\\d+,,\\w+-\\w+-(succ)'
+          standaloneExpr: '^(?:[^-]*-){3}(succ)'
         }
       }
     } as Result)
@@ -574,7 +574,7 @@ describe('regExpGenerator', () => {
     expect(matches[result.names['status'].groupIndex]).toBe('succ')
   })
 
-  it.skip('性能测试: 选择五个字段生成表达式, 验证30万行数据', () => {
+  it('性能测试: 选择五个字段生成表达式, 验证30万行数据', () => {
     const size = 100000 * 3
     const len = sampleList.length
     const newSamples = new Array(size)

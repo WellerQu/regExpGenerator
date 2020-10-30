@@ -29,13 +29,13 @@ export interface Result {
   names: NamesMapping,
 }
 
-function isNumber (ch: string): boolean {
+function isNumber(ch: string): boolean {
   // 0 ~ 9
   const code = ch.charCodeAt(0)
-  return (code >= 0x30 && code <= 0x39) 
+  return (code >= 0x30 && code <= 0x39)
 }
 
-function isWord (ch: string): boolean {
+function isWord(ch: string): boolean {
   // A ~ Z || a ~ z
   const code = ch.charCodeAt(0)
   return (code >= 0x41 && code <= 0x5A) || (code >= 0x61 && code <= 0x7A)
@@ -47,26 +47,12 @@ function isUnicode(ch: string): boolean {
   return code > 255
 }
 
-function isRegExpMetaChar(ch: string): boolean {
-  return !!~'\\^$*+?{}.|[]'.indexOf(ch)
+function isSeparator(ch: string): boolean {
+  return !isNumber(ch) && !isWord(ch) && !isUnicode(ch)
 }
 
-function punctuationCount (slice: string): Map<string, number> {
-  const characterCounter = new Map<string, number>()
-
-  slice.split('').forEach(ch => {
-    if (isNumber(ch)) {
-      return
-    }
-    if (isWord(ch)) {
-      return
-    }
-
-    const count = characterCounter.get(ch) ?? 0
-    characterCounter.set(ch, count + 1)
-  })
-
-  return characterCounter
+function isRegExpMetaChar(ch: string): boolean {
+  return !!~'\\^$*+?{}.|[]'.indexOf(ch)
 }
 
 function characterCount(slice: string, ch: string): number {
@@ -75,28 +61,12 @@ function characterCount(slice: string, ch: string): number {
   }, 0)
 }
 
-function findMaxCountCharacter (map: Map<string, number>): [ string, number  ] {
-  const iterator = map.entries()
-
-  let max = 0
-  let key= ''
-
-  for (const item of iterator) {
-    if (item[1] >= max) {
-      max = item[1]
-      key = item[0]
-    }
-  }
-
-  return  [key, max]
-}
-
-function transformCharacter (value: string, level: Level): string {
+function transformCharacter(value: string, level: Level): string {
   if (level === Level.exact) {
     return value
   }
 
-  const expr =  value
+  const expr = value
     .split('')
     .map(ch => {
       if (isNumber(ch)) {
@@ -131,8 +101,17 @@ function findSeparator(slice: string, sep?: string): [string, number] {
     return [sep, characterCount(slice, sep[0])]
   }
 
-  const sepMap = punctuationCount(slice)
-  return findMaxCountCharacter(sepMap)
+  // 倒序查找最近的界定符作为分隔符
+  const chs = slice.split('')
+  let separator = ''
+  for (let i = chs.length - 1; i >= 0; i--) {
+    if (isSeparator(chs[i])) {
+      separator = chs[i]
+      break
+    }
+  }
+
+  return [separator, characterCount(slice, separator)]
 }
 
 export function generate(raw: string, samples: Sample[], options?: Options): Result {
@@ -168,7 +147,7 @@ export function generate(raw: string, samples: Sample[], options?: Options): Res
     const chs = isRegExpMetaChar(separator) ? `\\${separator}` : separator
 
     // #region 生成前缀正则表达式
-    const prevExpr = count === 0 ? '' : `(?:[^${chs}\\n]*${chs}){${count}}`
+    const prevExpr = count === 0 ? '' : `(?:[^${chs}]*${chs}){${count}}`
     // #endregion
 
     // #region 生成中间正则表达式
