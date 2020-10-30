@@ -574,8 +574,8 @@ describe('regExpGenerator', () => {
     expect(matches[result.names['status'].groupIndex]).toBe('succ')
   })
 
-  it('性能测试: 选择五个字段生成表达式, 验证30万行数据', () => {
-    const size = 100000 * 3
+  it.skip('性能测试: 选择五个字段生成表达式, 验证30万行数据', () => {
+    const size = 100000 * 3.1
     const len = sampleList.length
     const newSamples = new Array(size)
 
