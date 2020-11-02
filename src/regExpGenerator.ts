@@ -11,7 +11,7 @@ export interface Field {
 
 type FieldName = string
 type RegExpStr = string
-type NamesMapping = Record<FieldName, Field | undefined>
+type NamesMapping = Record<FieldName, Field>
 
 enum Level {
   fuzzy = 'fuzzy',
@@ -48,14 +48,10 @@ function isUnicode(ch: string): boolean {
 }
 
 function isSeparator(ch: string): boolean {
-  return !isNumber(ch) && !isWord(ch) && !isUnicode(ch)
+  return !isNumber(ch) && !isWord(ch) && !isUnicode(ch) 
 }
 
 function isRegExpMetaChar(ch: string): boolean {
-  if (ch === '') {
-    return false
-  }
-
   return !!~'\\^$*+?{}.|[]'.indexOf(ch)
 }
 
@@ -158,7 +154,7 @@ export function generate(raw: string, samples: Sample[], options?: Options): Res
     // #endregion
 
     // #region 生成中间正则表达式
-    const lastIndex = separator === '' ? 0 : slice.lastIndexOf(separator)
+    const lastIndex = slice.lastIndexOf(separator)
     const middleExpr = lastIndex === slice.length - 1 ? '' : transformCharacter(slice.slice(lastIndex + 1), Level.fuzzy)
     const notGreedExpr = middleExpr.endsWith('+') ? `${middleExpr}?` : middleExpr
     // #endregion
