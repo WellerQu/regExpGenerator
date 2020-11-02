@@ -1,4 +1,3 @@
-
 import { generate, Result, Sample } from './regExpGenerator'
 
 describe('regExpGenerator', () => {
@@ -20,6 +19,16 @@ describe('regExpGenerator', () => {
     /* 13 */'九月 24日 03:22:59 10.5.172.41 二月 24日 22:45:31 这是什么 1,2020/09/25 03:22:59,007200001164,SYSTEM',
     /* 14 */'十二月 29日 03:22:59 10.5.172.41 二月 24日 22:45:31 这是什么 1,2020/09/25 03:22:59,007200001164,SYSTEM',
   ]
+
+  const sampleList2 = [
+    `2020-04-23T06:02:54.619+0800｜ASIO [ NetworkInterfaceASIO-TaskExecutorPool-14-0 ] Connecting to 10.181.144.7:31000 
+
+2020-04-23T06:02:54.619+0800｜ASIO [ NetworkInterfaceASIO-TaskExecutorPool-14-0 ] Connecting to 10.181.144.7:31000 
+2020-04-23T06:02:54.619+0800｜ASIO [ NetworkInterfaceASIO-TaskExecutorPool-14-0 ] Connecting to 10.181.144.7:31000`,
+    `2020-04-23T06:02:54.619+0800｜ASIO [ NetworkInterfaceASIO-TaskExecutorPool-14-0 ] Connecting to 10.181.144.7:31000 
+
+2020-04-23T06:02:54.619+0800｜ASIO [ NetworkInterfaceASIO-TaskExecutorPool-14-0 ] Connecting to 10.182.144.8:31000 
+2020-04-23T06:02:54.619+0800｜ASIO [ NetworkInterfaceASIO-TaskExecutorPool-14-0 ] Connecting to 10.183.144.9:31000`]
   /* eslint-enable no-useless-escape */
 
   it('未选择任何区间', () => {
@@ -572,6 +581,86 @@ describe('regExpGenerator', () => {
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
     expect(matches[result.names['status'].groupIndex]).toBe('succ')
+  })
+
+  it('中段无标识符', () => {
+    const selectedAreas = [
+      {
+        name: "a",
+        startIndex: 29,
+        value: "ASIO",
+      },
+      {
+        name: 'b',
+        startIndex: 23,
+        value: '+'
+      }
+    ]
+
+
+    const result = generate(sampleList2[0], selectedAreas)
+
+    expect(result).not.toBeNull()
+    expect(result).toEqual({
+      expr: '^(?:[^\\.]*\\.){1}\\d+?(\\+)\\d+[\\u4e00-\\uffff](\\w+)',
+      names: {
+        a: {
+          groupIndex: 2,
+          standaloneExpr: '^(?:[^\\+]*\\+){1}\\d+[\\u4e00-\\uffff](\\w+)'
+        },
+        b: {
+          groupIndex: 1,
+          'standaloneExpr': "^(?:[^\\.]*\\.){1}\\d+?(\\+)"
+        }
+      }
+    } as Result)
+
+    const reg = new RegExp(result.expr, 'im')
+    const matches = reg.exec(sampleList2[0])
+
+    expect(matches).not.toBeNull()
+    expect(matches).toHaveLength(selectedAreas.length + 1)
+    expect(matches[result.names['a'].groupIndex]).toBe('ASIO')
+    expect(matches[result.names['b'].groupIndex]).toBe('+')
+  })
+
+  it('日志存在换行', () => {
+    const selectedAreas = [
+      {
+        "startIndex": 197,
+        "value": "Connecting to 10.181.144.7",
+        "name": "a"
+      },
+      {
+        "startIndex": 326,
+        "value": "10.181",
+        "name": "b"
+      }
+    ]
+    const result = generate(sampleList2[0], selectedAreas)
+
+    expect(result).not.toBeNull()
+    expect(result).toEqual({
+      expr: '^(?:[^ ]* ){11}(\\w+ \\w+ \\d+\\.\\d+\\.\\d+\\.\\d+)(?:[^ ]* ){7}(\\d+\\.\\d+)',
+      names: {
+        a: {
+          groupIndex: 1,
+          standaloneExpr: '^(?:[^ ]* ){11}(\\w+ \\w+ \\d+\\.\\d+\\.\\d+\\.\\d+)'
+        },
+        b: {
+          groupIndex: 2,
+          standaloneExpr: "^(?:[^ ]* ){20}(\\d+\\.\\d+)",
+        }
+      }
+    } as Result)
+
+    const reg = new RegExp(result.expr, 'im')
+    const matches = reg.exec(sampleList2[1])
+
+    expect(matches).not.toBeNull()
+    expect(matches).toHaveLength(selectedAreas.length + 1)
+    expect(matches[result.names['a'].groupIndex]).toBe('Connecting to 10.182.144.8')
+    expect(matches[result.names['b'].groupIndex]).toBe('10.183')
   })
 
   it.skip('性能测试: 选择五个字段生成表达式, 验证30万行数据', () => {
