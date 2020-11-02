@@ -1,6 +1,6 @@
 {
   "name": "regexp-generator",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "generate a regexp string by a sample and some selected strings",
   "main": "build/commonjs/regExpGenerator.js",
   "module": "build/esm/regExpGenerator.js",
