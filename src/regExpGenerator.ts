@@ -56,7 +56,7 @@ function isRegExpMetaChar(ch: string): boolean {
     return false
   }
 
-  return !!~'\\^$*+?{}.|[]'.indexOf(ch)
+  return !!~'\\^$*+?{}.|[]()'.indexOf(ch)
 }
 
 function characterCount(slice: string, ch: string): number {
