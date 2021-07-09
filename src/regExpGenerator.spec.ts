@@ -46,10 +46,11 @@ describe('regExpGenerator', () => {
   })
 
   it('未提供任何样例', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'anything',
         value: 'Sep 24',
+        valueType: 'string',
         startIndex: 0
       }
     ]
@@ -66,10 +67,11 @@ describe('regExpGenerator', () => {
   })
 
   it('生成表达式: 选取一段', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'LoginFromIP',
         value: '192.168.55.100',
+        valueType: 'string',
         startIndex: 251
       }
     ]
@@ -81,7 +83,8 @@ describe('regExpGenerator', () => {
       names: {
         'LoginFromIP': {
           groupIndex: 1,
-          standaloneExpr: "^(?:[^ ]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)"
+          standaloneExpr: '^(?:[^ ]* ){16}(\\d+\\.\\d+\\.\\d+\\.\\d+)',
+          valueType: 'string'
         }
       }
     } as Result)
@@ -100,21 +103,24 @@ describe('regExpGenerator', () => {
   })
 
   it('生成表达式: 选取三段', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'Time 1',
         value: ' 02:22:59',
-        startIndex: 6
+        startIndex: 6,
+        valueType: 'number',
       },
       {
         name: 'Part of IP',
         value: '5.172.40',
-        startIndex: 19
+        startIndex: 19,
+        valueType: 'string',
       },
       {
         name: 'Date 1',
         value: 'Sep 25',
-        startIndex: 0
+        startIndex: 0,
+        valueType: 'string',
       }
     ]
     const result = generate(sampleList[1], selectedAreas)
@@ -125,15 +131,18 @@ describe('regExpGenerator', () => {
       names: {
         'Time 1': {
           groupIndex: 2,
-          standaloneExpr: "^(?:[^ ]* ){1}\\d+?( \\d+:\\d+:\\d+)"
+          standaloneExpr: '^(?:[^ ]* ){1}\\d+?( \\d+:\\d+:\\d+)',
+          valueType: 'number',
         },
         'Part of IP': {
           groupIndex: 3,
-          standaloneExpr: "^(?:[^\\.]*\\.){1}(\\d+\\.\\d+\\.\\d+)"
+          valueType: 'string',
+          standaloneExpr: '^(?:[^\\.]*\\.){1}(\\d+\\.\\d+\\.\\d+)'
         },
         'Date 1': {
           groupIndex: 1,
-          standaloneExpr: "^(\\w+ \\d+)"
+          valueType: 'string',
+          standaloneExpr: '^(\\w+ \\d+)'
         }
       }
     } as Result)
@@ -156,10 +165,11 @@ describe('regExpGenerator', () => {
   })
 
   it('准确识别位置: 命中第二个时间格式的字符串, 但不命中第一个', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'Time 2',
         value: '19:32:23',
+        valueType: 'string',
         startIndex: 35
       }
     ]
@@ -171,7 +181,8 @@ describe('regExpGenerator', () => {
       names: {
         'Time 2': {
           groupIndex: 1,
-          standaloneExpr: "^(?:[^ ]* ){6}(\\d+:\\d+:\\d+)"
+          valueType: 'string',
+          standaloneExpr: '^(?:[^ ]* ){6}(\\d+:\\d+:\\d+)'
         }
       }
     } as Result)
@@ -182,14 +193,15 @@ describe('regExpGenerator', () => {
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
     expect(matches[result.names['Time 2'].groupIndex]).not.toBe('17:22:59')
-    expect(matches[result.names['Time 2'].groupIndex]).toBe("19:32:23")
+    expect(matches[result.names['Time 2'].groupIndex]).toBe('19:32:23')
   })
 
   it('选择部分IP地址', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'part of IP',
         value: '72.40',
+        valueType: 'string',
         startIndex: 22
       }
     ]
@@ -201,7 +213,8 @@ describe('regExpGenerator', () => {
       names: {
         'part of IP': {
           groupIndex: 1,
-          standaloneExpr: "^(?:[^\\.]*\\.){2}\\d+?(\\d+\\.\\d+)"
+          valueType: 'string',
+          standaloneExpr: '^(?:[^\\.]*\\.){2}\\d+?(\\d+\\.\\d+)'
         }
       }
     } as Result)
@@ -211,14 +224,15 @@ describe('regExpGenerator', () => {
 
     expect(matches).not.toBeNull()
     expect(matches).toHaveLength(selectedAreas.length + 1)
-    expect(matches[result.names['part of IP'].groupIndex]).toBe("72.40")
+    expect(matches[result.names['part of IP'].groupIndex]).toBe('72.40')
   })
 
   it('选择部分单词会匹配不准确', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'part of string',
         value: 'nora',
+        valueType: 'string',
         startIndex: 49
       }
     ]
@@ -230,6 +244,7 @@ describe('regExpGenerator', () => {
       names: {
         'part of string': {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^-]*-){1}\\w+?(\\w+)'
         }
       }
@@ -244,10 +259,11 @@ describe('regExpGenerator', () => {
   })
 
   it('选择字符串包含标点符号', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'include -',
         value: 'auth-fail',
+        valueType: 'string',
         startIndex: 155
       }
     ]
@@ -257,8 +273,9 @@ describe('regExpGenerator', () => {
     expect(result).toEqual({
       expr: '^(?:[^-]*-){2}(\\w+-\\w+)',
       names: {
-        "include -": {
+        'include -': {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^-]*-){2}(\\w+-\\w+)'
         }
       }
@@ -273,10 +290,11 @@ describe('regExpGenerator', () => {
   })
 
   it('选择字符串以标点符号开头', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: '- www',
         value: 'Panorama',
+        valueType: 'string',
         startIndex: 47
       }
     ]
@@ -284,10 +302,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^(?:[^-]*-){1}(\\w+)",
+      expr: '^(?:[^-]*-){1}(\\w+)',
       names: {
-        "- www": {
+        '- www': {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^-]*-){1}(\\w+)'
         }
       }
@@ -302,29 +321,33 @@ describe('regExpGenerator', () => {
   })
 
   it('中文支持', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: '日期 1',
         value: '九月 24日',
+        valueType: 'string',
         startIndex: 0
       },
       {
         name: '日期 2',
         value: '二月 24日',
+        valueType: 'string',
         startIndex: 28
       }
     ]
     const result = generate(sampleList[13], selectedAreas)
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])(?:[^ ]* ){3}([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])",
+      expr: '^([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])(?:[^ ]* ){3}([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])',
       names: {
         '日期 1': {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])'
         },
         '日期 2': {
           groupIndex: 2,
+          valueType: 'string',
           standaloneExpr: '^(?:[^ ]* ){4}([\\u4e00-\\uffff]+ \\d+[\\u4e00-\\uffff])'
         }
       }
@@ -354,31 +377,36 @@ describe('regExpGenerator', () => {
     })
   })
 
-  it("根据其中一个日志生成正则表达式, 并验证其它日志", () => {
-    const selectedAreas = [
+  it('根据其中一个日志生成正则表达式, 并验证其它日志', () => {
+    const selectedAreas: Sample[] = [
       {
         name: 'IP',
         value: '60.28.233.48',
+        valueType: 'string',
         startIndex: 265
       },
       {
         name: 'time',
         value: '19:44:58',
+        valueType: 'string',
         startIndex: 35
       },
       {
         name: 'date',
         value: '2020/09/27',
+        valueType: 'string',
         startIndex: 58
       },
       {
         name: 'time2',
         value: 'Sep 24',
+        valueType: 'string',
         startIndex: 0
       },
       {
         name: 'state',
         value: 'failed',
+        valueType: 'string',
         startIndex: 245
       }
     ]
@@ -394,72 +422,72 @@ describe('regExpGenerator', () => {
     expect(cases).toEqual([
       null,
       [
-        "Sep 25 02:22:59 10.5.172.40 Feb 24 22:46:02 BD-Panorama 1,2020/09/25 02:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/25 02:22:59,,globalprotectportal-auth-succ,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal user authentication succeeded. Login from: 65.55.223.21",
-        "Sep 25",
-        "22:46:02",
-        "2020/09/25",
-        "succeeded",
-        "65.55.223.21"
+        'Sep 25 02:22:59 10.5.172.40 Feb 24 22:46:02 BD-Panorama 1,2020/09/25 02:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/25 02:22:59,,globalprotectportal-auth-succ,GP-Portal-1,0,0,general,informational,"GlobalProtect portal user authentication succeeded. Login from: 65.55.223.21',
+        'Sep 25',
+        '22:46:02',
+        '2020/09/25',
+        'succeeded',
+        '65.55.223.21'
       ],
       null,
       null,
       [
-        "Sep 24 17:22:59 10.5.172.40 Feb 24 19:32:23 BD-Panorama 1,2020/09/24 17:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 17:22:59,,globalprotectgateway-auth-succ,VPN-GW-N,0,0,general,informational,\"GlobalProtect gateway user authentication succeeded. Login from: 205.178.144.19",
-        "Sep 24",
-        "19:32:23",
-        "2020/09/24",
-        "succeeded",
-        "205.178.144.19",
+        'Sep 24 17:22:59 10.5.172.40 Feb 24 19:32:23 BD-Panorama 1,2020/09/24 17:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 17:22:59,,globalprotectgateway-auth-succ,VPN-GW-N,0,0,general,informational,"GlobalProtect gateway user authentication succeeded. Login from: 205.178.144.19',
+        'Sep 24',
+        '19:32:23',
+        '2020/09/24',
+        'succeeded',
+        '205.178.144.19',
       ],
       [
-        "Sep 24 16:22:59 10.5.172.40 Feb 24 22:46:02 BD-Panorama 1,2020/09/24 16:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 16:22:59,,globalprotectportal-auth-succ,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal user authentication succeeded. Login from: 64.147.162.160",
-        "Sep 24",
-        "22:46:02",
-        "2020/09/24",
-        "succeeded",
-        "64.147.162.160",
-      ],
-      null,
-      [
-        "Sep 24 13:22:59 10.5.172.40 Feb 24 21:45:09 BD-Panorama 1,2020/09/24 13:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 13:22:59,,globalprotectportal-auth-fail,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal user authentication failed. Login from: 60.28.233.48",
-        "Sep 24",
-        "21:45:09",
-        "2020/09/24",
-        "failed",
-        "60.28.233.48",
+        'Sep 24 16:22:59 10.5.172.40 Feb 24 22:46:02 BD-Panorama 1,2020/09/24 16:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 16:22:59,,globalprotectportal-auth-succ,GP-Portal-1,0,0,general,informational,"GlobalProtect portal user authentication succeeded. Login from: 64.147.162.160',
+        'Sep 24',
+        '22:46:02',
+        '2020/09/24',
+        'succeeded',
+        '64.147.162.160',
       ],
       null,
       [
-        "Sep 24 08:22:59 10.5.172.40 Feb 24 22:46:02 BD-Panorama 1,2020/09/24 08:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 08:22:59,,globalprotectportal-config-succ,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal client configuration generated. Login from: 64.147.162.160",
-        "Sep 24",
-        "22:46:02",
-        "2020/09/24",
-        "generated",
-        "64.147.162.160",
+        'Sep 24 13:22:59 10.5.172.40 Feb 24 21:45:09 BD-Panorama 1,2020/09/24 13:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 13:22:59,,globalprotectportal-auth-fail,GP-Portal-1,0,0,general,informational,"GlobalProtect portal user authentication failed. Login from: 60.28.233.48',
+        'Sep 24',
+        '21:45:09',
+        '2020/09/24',
+        'failed',
+        '60.28.233.48',
+      ],
+      null,
+      [
+        'Sep 24 08:22:59 10.5.172.40 Feb 24 22:46:02 BD-Panorama 1,2020/09/24 08:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 08:22:59,,globalprotectportal-config-succ,GP-Portal-1,0,0,general,informational,"GlobalProtect portal client configuration generated. Login from: 64.147.162.160',
+        'Sep 24',
+        '22:46:02',
+        '2020/09/24',
+        'generated',
+        '64.147.162.160',
       ],
       [
-        "Sep 24 04:22:59 10.5.172.40 Feb 24 19:32:23 BD-Panorama 1,2020/09/24 04:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 04:22:59,,globalprotectportal-config-succ,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal client configuration generated. Login from: 205.178.144.19",
-        "Sep 24",
-        "19:32:23",
-        "2020/09/24",
-        "generated",
-        "205.178.144.19",
+        'Sep 24 04:22:59 10.5.172.40 Feb 24 19:32:23 BD-Panorama 1,2020/09/24 04:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 04:22:59,,globalprotectportal-config-succ,GP-Portal-1,0,0,general,informational,"GlobalProtect portal client configuration generated. Login from: 205.178.144.19',
+        'Sep 24',
+        '19:32:23',
+        '2020/09/24',
+        'generated',
+        '205.178.144.19',
       ],
       [
-        "Sep 24 03:22:59 10.5.172.40 Feb 24 19:32:23 BD-Panorama 1,2020/09/24 03:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 03:22:59,,globalprotectportal-config-succ,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal client configuration generated. Login from: 205.178.144.19",
-        "Sep 24",
-        "19:32:23",
-        "2020/09/24",
-        "generated",
-        "205.178.144.19",
+        'Sep 24 03:22:59 10.5.172.40 Feb 24 19:32:23 BD-Panorama 1,2020/09/24 03:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 03:22:59,,globalprotectportal-config-succ,GP-Portal-1,0,0,general,informational,"GlobalProtect portal client configuration generated. Login from: 205.178.144.19',
+        'Sep 24',
+        '19:32:23',
+        '2020/09/24',
+        'generated',
+        '205.178.144.19',
       ],
       [
-        "Sep 24 03:22:59 10.5.172.40 Feb 24 22:45:32 BD-Panorama 1,2020/09/24 03:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 03:22:59,,globalprotectportal-auth-fail,GP-Portal-1,0,0,general,informational,\"GlobalProtect portal user authentication failed. Login from: 64.135.77.120",
-        "Sep 24",
-        "22:45:32",
-        "2020/09/24",
-        "failed",
-        "64.135.77.120",
+        'Sep 24 03:22:59 10.5.172.40 Feb 24 22:45:32 BD-Panorama 1,2020/09/24 03:22:59,007200001165,SYSTEM,globalprotect,0,2020/09/24 03:22:59,,globalprotectportal-auth-fail,GP-Portal-1,0,0,general,informational,"GlobalProtect portal user authentication failed. Login from: 64.135.77.120',
+        'Sep 24',
+        '22:45:32',
+        '2020/09/24',
+        'failed',
+        '64.135.77.120',
       ],
       null,
       null
@@ -467,10 +495,11 @@ describe('regExpGenerator', () => {
   })
 
   it('使用自定义分隔符', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'date',
         value: '09/24',
+        valueType: 'string',
         startIndex: 63
       }
     ]
@@ -479,10 +508,11 @@ describe('regExpGenerator', () => {
 
     expect(result).not.toBeNull()
     expect(result).toEqual({
-      expr: "^(?:[^/]*/){1}(\\d+/\\d+)",
+      expr: '^(?:[^/]*/){1}(\\d+/\\d+)',
       names: {
         date: {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^/]*/){1}(\\d+/\\d+)'
         }
       }
@@ -497,10 +527,11 @@ describe('regExpGenerator', () => {
   })
 
   it('不同精确度的匹配: 模糊匹配', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'status',
         value: 'succ',
+        valueType: 'string',
         startIndex: 162
       }
     ]
@@ -512,6 +543,7 @@ describe('regExpGenerator', () => {
       names: {
         status: {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^-]*-){3}(\\w+)'
         }
       }
@@ -526,10 +558,11 @@ describe('regExpGenerator', () => {
   })
 
   it('不同精确度的匹配: 一般匹配', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'status',
         value: 'succ',
+        valueType: 'string',
         startIndex: 162
       }
     ]
@@ -541,6 +574,7 @@ describe('regExpGenerator', () => {
       names: {
         status: {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^-]*-){3}(\\w\\w\\w\\w)'
         }
       }
@@ -555,10 +589,11 @@ describe('regExpGenerator', () => {
   })
 
   it('不同精确度的匹配: 精确匹配', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'status',
         value: 'succ',
+        valueType: 'string',
         startIndex: 162
       }
     ]
@@ -570,6 +605,7 @@ describe('regExpGenerator', () => {
       names: {
         status: {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^-]*-){3}(succ)'
         }
       }
@@ -584,15 +620,17 @@ describe('regExpGenerator', () => {
   })
 
   it('中段无标识符', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
-        name: "a",
+        name: 'a',
         startIndex: 29,
-        value: "ASIO",
+        valueType: 'string',
+        value: 'ASIO',
       },
       {
         name: 'b',
         startIndex: 23,
+        valueType: 'string',
         value: '+'
       }
     ]
@@ -606,11 +644,13 @@ describe('regExpGenerator', () => {
       names: {
         a: {
           groupIndex: 2,
+          valueType: 'string',
           standaloneExpr: '^(?:[^\\+]*\\+){1}\\d+[\\u4e00-\\uffff](\\w+)'
         },
         b: {
           groupIndex: 1,
-          'standaloneExpr': "^(?:[^\\.]*\\.){1}\\d+?(\\+)"
+          valueType: 'string',
+          'standaloneExpr': '^(?:[^\\.]*\\.){1}\\d+?(\\+)'
         }
       }
     } as Result)
@@ -625,16 +665,18 @@ describe('regExpGenerator', () => {
   })
 
   it('日志存在换行', () => {
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
-        "startIndex": 197,
-        "value": "Connecting to 10.181.144.7",
-        "name": "a"
+        'startIndex': 197,
+        'value': 'Connecting to 10.181.144.7',
+        valueType: 'string',
+        'name': 'a'
       },
       {
-        "startIndex": 326,
-        "value": "10.181",
-        "name": "b"
+        'startIndex': 326,
+        'value': '10.181',
+        valueType: 'string',
+        'name': 'b'
       }
     ]
     const result = generate(sampleList2[0], selectedAreas)
@@ -645,11 +687,13 @@ describe('regExpGenerator', () => {
       names: {
         a: {
           groupIndex: 1,
+          valueType: 'string',
           standaloneExpr: '^(?:[^ ]* ){11}(\\w+ \\w+ \\d+\\.\\d+\\.\\d+\\.\\d+)'
         },
         b: {
           groupIndex: 2,
-          standaloneExpr: "^(?:[^ ]* ){20}(\\d+\\.\\d+)",
+          valueType: 'string',
+          standaloneExpr: '^(?:[^ ]* ){20}(\\d+\\.\\d+)',
         }
       }
     } as Result)
@@ -672,30 +716,35 @@ describe('regExpGenerator', () => {
       newSamples[i] = sampleList[i % len]
     }
 
-    const selectedAreas = [
+    const selectedAreas: Sample[] = [
       {
         name: 'IP',
         value: '60.28.233.48',
+        valueType: 'string',
         startIndex: 265
       },
       {
         name: 'time',
         value: '19:44:58',
+        valueType: 'string',
         startIndex: 35
       },
       {
         name: 'date',
         value: '2020/09/27',
+        valueType: 'string',
         startIndex: 58
       },
       {
         name: 'time2',
         value: 'Sep 24',
+        valueType: 'string',
         startIndex: 0
       },
       {
         name: 'state',
         value: 'failed',
+        valueType: 'string',
         startIndex: 245
       }
     ]

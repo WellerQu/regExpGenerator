@@ -2,16 +2,18 @@ export interface Sample {
   name: string
   value: string
   startIndex: number
+  valueType: 'number' | 'string' | 'time'
 }
 
 export interface Field {
   groupIndex: number,
-  standaloneExpr: string
+  standaloneExpr: string,
+  valueType: 'number' | 'string' | 'time'
 }
 
 type FieldName = string
 type RegExpStr = string
-type NamesMapping = Record<FieldName, Field | undefined>
+export type NamesMapping = Record<FieldName, Field | undefined>
 
 enum Level {
   fuzzy = 'fuzzy',
@@ -67,23 +69,28 @@ function characterCount(slice: string, ch: string): number {
 
 function transformCharacter(value: string, level: Level): string {
   if (level === Level.exact) {
-    return value
+    return value.split('').map(ch => {
+      if (isRegExpMetaChar(ch)) {
+        return `\\${ch}`
+      }
+      return ch
+    }).join('')
   }
 
   const expr = value
     .split('')
     .map(ch => {
       if (isNumber(ch)) {
-        return `\\d`
+        return '\\d'
       }
       if (isWord(ch)) {
-        return `\\w`
+        return '\\w'
       }
       if (isRegExpMetaChar(ch)) {
         return `\\${ch}`
       }
       if (isUnicode(ch)) {
-        return `[\\u4e00-\\uffff]`
+        return '[\\u4e00-\\uffff]'
       }
 
       return ch
@@ -95,9 +102,9 @@ function transformCharacter(value: string, level: Level): string {
   }
 
   return expr
-    .replace(/(\\w)+/g, "\\w+")
-    .replace(/(\\d)+/g, "\\d+")
-    .replace(/(\[\\u4e00-\\uffff\]){2,}/g, "[\\u4e00-\\uffff]+")
+    .replace(/(\\w)+/g, '\\w+')
+    .replace(/(\\d)+/g, '\\d+')
+    .replace(/(\[\\u4e00-\\uffff\]){2,}/g, '[\\u4e00-\\uffff]+')
 }
 
 function findSeparator(slice: string, sep?: string): [string, number] {
@@ -141,7 +148,7 @@ export function generate(raw: string, samples: Sample[], options?: Options): Res
   const result: Result = {
     expr: '',
     names: sortedSamples.reduce((acc, item, index) => {
-      acc[item.name] = { groupIndex: index + 1, standaloneExpr: '' }
+      acc[item.name] = { groupIndex: index + 1, standaloneExpr: '', valueType: item.valueType }
       return acc
     }, {} as NamesMapping)
   }
@@ -177,7 +184,8 @@ export function generate(raw: string, samples: Sample[], options?: Options): Res
   result.names = sortedSamples.reduce((acc, sample, index) => {
     acc[sample.name] = {
       groupIndex: index + 1,
-      standaloneExpr: ('^' + standaloneExprs[index])
+      standaloneExpr: ('^' + standaloneExprs[index]),
+      valueType: sample.valueType
     }
     return acc
   }, {} as NamesMapping)
