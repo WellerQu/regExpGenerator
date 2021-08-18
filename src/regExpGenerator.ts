@@ -38,9 +38,9 @@ function isNumber(ch: string): boolean {
 }
 
 function isWord(ch: string): boolean {
-  // A ~ Z || a ~ z
+  // A ~ Z || a ~ z || _
   const code = ch.charCodeAt(0)
-  return (code >= 0x41 && code <= 0x5A) || (code >= 0x61 && code <= 0x7A)
+  return (code >= 0x41 && code <= 0x5A) || (code >= 0x61 && code <= 0x7A) || code === 0x5F
 }
 
 function isUnicode(ch: string): boolean {
